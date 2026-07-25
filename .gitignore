@@ -1,0 +1,5 @@
+node_modules
+guidelines
+ATTRIBUTIONS.md
+package-lock.json
+dist/
