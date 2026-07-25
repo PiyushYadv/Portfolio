@@ -104,7 +104,7 @@ export const PROJECTS = [
     tags: ["Python", "PyTorch", "PyTorch Geometric"],
     description:
       "Dataset-agnostic link prediction framework for multiplex graphs with intra-layer message passing, inter-layer semantic attention, leakage-safe data ingestion, and scalable neighbor sampling for massive graph training.",
-    year: "2025",
+    year: "2026",
     github: "https://github.com/PiyushYadv/mplx-lp",
     live: null,
   },

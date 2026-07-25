@@ -467,11 +467,11 @@ export default function App() {
 
           <h1
             ref={titleRef}
-            className="mb-2 block whitespace-nowrap tracking-tight text-foreground"
+            className="mb-7 block whitespace-nowrap tracking-tight text-foreground md:mb-9"
             style={{
               ...DISPLAY,
               fontSize: "clamp(3.5rem, 10vw, 10rem)",
-              marginLeft: "-0.075em",
+              marginLeft: "-0.035em",
               visibility: fontsReady ? "visible" : "hidden",
               willChange: "opacity",
             }}
