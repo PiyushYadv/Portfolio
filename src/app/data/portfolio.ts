@@ -35,6 +35,7 @@ export const NAV_ITEMS = [
   "projects",
   "experience",
   "education",
+  // "achievements",
   "skills",
   "contact",
 ];
@@ -211,6 +212,29 @@ export const EDUCATION = [
   },
 ];
 
+// Future section: uncomment the nav item above, the heading below, and the
+// Achievements section in App.tsx when you have 3-5 strong achievements.
+// export const ACHIEVEMENTS = [
+//   {
+//     title: "Hackathon Finalist",
+//     organization: "Event or organizer name",
+//     year: "2026",
+//     description: "Short outcome-focused description of what you built or won.",
+//   },
+//   {
+//     title: "Competitive Programming Milestone",
+//     organization: "Platform name",
+//     year: "2025",
+//     description: "Mention rating, rank, contest result, or solved problem count.",
+//   },
+//   {
+//     title: "Academic Recognition",
+//     organization: "Institution name",
+//     year: "2024",
+//     description: "Keep this specific and measurable.",
+//   },
+// ];
+
 export const SECTION_HEADINGS = {
   projects: {
     eyebrow: "03 — SELECTED WORK",
@@ -225,6 +249,10 @@ export const SECTION_HEADINGS = {
     eyebrow: "05 — ACADEMIC BACKGROUND",
     title: "Education",
   },
+  // achievements: {
+  //   eyebrow: "06 — ACHIEVEMENTS",
+  //   title: "Achievements",
+  // },
   skills: {
     eyebrow: "06 — TECH STACK",
     title: "Skills",

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
@@ -28,6 +28,7 @@ import {
   SKILLS,
   STATS,
   UI_TEXT,
+  // ACHIEVEMENTS,
 } from "./data/portfolio";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
@@ -195,6 +196,7 @@ function CountUp({
 const MONO: React.CSSProperties = { fontFamily: "'JetBrains Mono', monospace" };
 const DISPLAY: React.CSSProperties = {
   fontFamily: "'Archivo Black', sans-serif",
+  lineHeight: 0.92,
 };
 
 export default function App() {
@@ -209,7 +211,7 @@ export default function App() {
   const heroRole = useScrambleText(PROFILE.role, 1200);
   const emailHref = `mailto:${PROFILE.social.email}`;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         navRef.current,
@@ -233,9 +235,10 @@ export default function App() {
       if (titleRef.current) {
         gsap.fromTo(
           titleRef.current,
-          { clipPath: "inset(0 100% 0 0)" },
+          { clipPath: "inset(0 100% 0 0)", y: 0 },
           {
             clipPath: "inset(0 0% 0 0)",
+            y: 0,
             duration: 1.1,
             ease: "power4.inOut",
             delay: 0.5,
@@ -427,8 +430,13 @@ export default function App() {
 
           <h1
             ref={titleRef}
-            className="mb-2 leading-none tracking-tight text-foreground"
-            style={{ ...DISPLAY, fontSize: "clamp(3.5rem, 10vw, 10rem)" }}
+            className="mb-2 block overflow-hidden tracking-tight text-foreground"
+            style={{
+              ...DISPLAY,
+              clipPath: "inset(0 100% 0 0)",
+              fontSize: "clamp(3.5rem, 10vw, 10rem)",
+              willChange: "clip-path",
+            }}
           >
             {heroName}
           </h1>
@@ -812,6 +820,60 @@ export default function App() {
           ))}
         </div>
       </section>
+
+      {/*
+      Future section: uncomment ACHIEVEMENTS in the import above, the data in
+      portfolio.ts, and the nav item when you have 3-5 strong achievements.
+
+      <section
+        id="achievements"
+        className="py-24 px-6 md:px-16 lg:px-24 border-t border-border"
+      >
+        <p
+          className="mb-3 font-mono text-xs tracking-[0.3em] text-primary reveal-up"
+          style={MONO}
+        >
+          {SECTION_HEADINGS.achievements.eyebrow}
+        </p>
+        <h2
+          className="text-4xl md:text-5xl font-black leading-tight mb-14 reveal-up"
+          style={DISPLAY}
+        >
+          {SECTION_HEADINGS.achievements.title}
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {ACHIEVEMENTS.map((achievement) => (
+            <div
+              key={`${achievement.title}-${achievement.year}`}
+              className="reveal-up border border-border p-7 bg-card hover:border-primary/30 transition-colors duration-300"
+            >
+              <div className="mb-5 flex items-center justify-between gap-4">
+                <Award size={18} className="text-primary flex-shrink-0" />
+                <span
+                  className="font-mono text-[10px] tracking-widest text-muted-foreground"
+                  style={MONO}
+                >
+                  {achievement.year}
+                </span>
+              </div>
+              <h3
+                className="text-lg font-black leading-snug mb-2 text-foreground"
+                style={DISPLAY}
+              >
+                {achievement.title}
+              </h3>
+              <p className="text-sm text-primary mb-4">
+                {achievement.organization}
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {achievement.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+      */}
 
       {/* SKILLS */}
       <section
