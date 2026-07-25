@@ -1,4 +1,5 @@
-export const RESUME_URL = "/resume.pdf";
+export const RESUME_URL =
+  "https://drive.google.com/file/d/1w1B7uTZadDRFDRq5oVP73hDwmw7BQ7RZ/view?usp=drive_link";
 
 export const PROFILE = {
   name: "Piyush Yadav",

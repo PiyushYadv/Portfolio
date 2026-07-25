@@ -219,7 +219,12 @@ function CountUp({
     return () => observer.disconnect();
   }, [value, suffix, decimals]);
 
-  return <span ref={ref}>{formatValue(0)}{suffix}</span>;
+  return (
+    <span ref={ref}>
+      {formatValue(0)}
+      {suffix}
+    </span>
+  );
 }
 
 const MONO: React.CSSProperties = { fontFamily: "'JetBrains Mono', monospace" };
@@ -415,7 +420,6 @@ export default function App() {
         </div>
         <a
           href={RESUME_URL}
-          download
           className="flex items-center gap-1.5 border border-primary/40 px-3 py-1.5 text-[11px] font-mono tracking-widest text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
           style={MONO}
         >
@@ -511,7 +515,6 @@ export default function App() {
             </button>
             <a
               href={RESUME_URL}
-              download
               className="group flex items-center gap-2 border border-border px-7 py-3.5 text-sm font-mono tracking-wide text-muted-foreground hover:border-foreground hover:text-foreground transition-all duration-200"
               style={MONO}
             >
@@ -1006,7 +1009,6 @@ export default function App() {
             </a>
             <a
               href={RESUME_URL}
-              download
               className="flex items-center gap-3 border border-border px-8 py-4 text-sm font-mono tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-all duration-200"
               style={MONO}
             >
