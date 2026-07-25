@@ -8,7 +8,6 @@ import {
   Linkedin,
   Mail,
   ExternalLink,
-  Terminal,
   Download,
   GraduationCap,
   Briefcase,
@@ -72,6 +71,36 @@ function useScrambleText(target: string, duration = 1200) {
   }, [target]);
 
   return display;
+}
+
+function useFontsReady(timeout = 1800) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (!("fonts" in document)) {
+      setReady(true);
+      return;
+    }
+
+    let cancelled = false;
+    const fallback = window.setTimeout(() => {
+      if (!cancelled) setReady(true);
+    }, timeout);
+
+    document.fonts.ready.then(() => {
+      if (!cancelled) {
+        window.clearTimeout(fallback);
+        setReady(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(fallback);
+    };
+  }, [timeout]);
+
+  return ready;
 }
 
 function CursorFollower() {
@@ -207,7 +236,7 @@ export default function App() {
   const heroCTARef = useRef<HTMLDivElement>(null);
   const skillsRef = useRef<HTMLDivElement>(null);
 
-  const heroName = useScrambleText(PROFILE.name, 900);
+  const fontsReady = useFontsReady();
   const heroRole = useScrambleText(PROFILE.role, 1200);
   const emailHref = `mailto:${PROFILE.social.email}`;
 
@@ -231,20 +260,6 @@ export default function App() {
           delay: 0.9,
         },
       );
-
-      if (titleRef.current) {
-        gsap.fromTo(
-          titleRef.current,
-          { clipPath: "inset(0 100% 0 0)", y: 0 },
-          {
-            clipPath: "inset(0 0% 0 0)",
-            y: 0,
-            duration: 1.1,
-            ease: "power4.inOut",
-            delay: 0.5,
-          },
-        );
-      }
 
       gsap.set(".reveal-up", { y: 48, opacity: 0 });
       gsap.set(".project-row", { x: -30, opacity: 0 });
@@ -334,6 +349,28 @@ export default function App() {
 
     return () => ctx.revert();
   }, []);
+
+  useLayoutEffect(() => {
+    const title = titleRef.current;
+    if (!title || !fontsReady) return;
+
+    const ctx = gsap.context(() => {
+      gsap.set(title, { autoAlpha: 1 });
+      gsap.fromTo(
+        ".hero-name-char",
+        { autoAlpha: 0 },
+        {
+          autoAlpha: 1,
+          duration: 0.5,
+          ease: "power2.out",
+          stagger: 0.035,
+          delay: 0.2,
+        },
+      );
+    }, title);
+
+    return () => ctx.revert();
+  }, [fontsReady]);
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
@@ -430,15 +467,25 @@ export default function App() {
 
           <h1
             ref={titleRef}
-            className="mb-2 block overflow-hidden tracking-tight text-foreground"
+            className="mb-2 block whitespace-nowrap tracking-tight text-foreground"
             style={{
               ...DISPLAY,
-              clipPath: "inset(0 100% 0 0)",
               fontSize: "clamp(3.5rem, 10vw, 10rem)",
-              willChange: "clip-path",
+              marginLeft: "-0.075em",
+              visibility: fontsReady ? "visible" : "hidden",
+              willChange: "opacity",
             }}
+            aria-label={PROFILE.name}
           >
-            {heroName}
+            {PROFILE.name.split("").map((char, index) => (
+              <span
+                key={`${char}-${index}`}
+                aria-hidden="true"
+                className="hero-name-char inline-block"
+              >
+                {char === " " ? "\u00A0" : char}
+              </span>
+            ))}
           </h1>
 
           <p
