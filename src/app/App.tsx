@@ -430,7 +430,7 @@ export default function App() {
 
       {/* HERO */}
       <section
-        className="relative flex min-h-screen flex-col justify-end px-6 pb-20 pt-32 md:px-16 lg:px-24"
+        className="relative flex min-h-screen flex-col justify-center md:justify-end px-6 pb: 12md:pb-20 pt-12 md:pt-32 md:px-16 lg:px-24"
         id="hero"
       >
         <div
@@ -474,7 +474,7 @@ export default function App() {
             className="mb-7 block whitespace-nowrap tracking-tight text-foreground md:mb-9"
             style={{
               ...DISPLAY,
-              fontSize: "clamp(3.5rem, 10vw, 10rem)",
+              fontSize: "clamp(3.25rem, 10vw, 10rem)",
               marginLeft: "-0.035em",
               visibility: fontsReady ? "visible" : "hidden",
               willChange: "opacity",
