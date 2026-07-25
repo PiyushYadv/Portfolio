@@ -14,6 +14,13 @@ import {
   Award,
 } from "lucide-react";
 import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "./components/ui/carousel";
+import {
   ABOUT,
   CONTACT,
   EDUCATION,
@@ -31,6 +38,66 @@ import {
 } from "./data/portfolio";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+
+function ProjectCover({ project }: { project: (typeof PROJECTS)[number] }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  if (!project.cover) return null;
+
+  return (
+    <div className="project-cover relative mb-5 h-44 overflow-hidden border border-border bg-muted md:h-48 md:max-w-[520px]">
+      {!imageFailed ? (
+        <img
+          src={project.cover}
+          alt={`${project.title} project screenshot`}
+          className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
+          onError={() => setImageFailed(true)}
+        />
+      ) : null}
+      <div
+        className={`absolute bottom-3 left-3 font-mono text-[9px] tracking-[0.25em] ${project.coverText === "dark" ? "text-black/80" : "text-white/90"}`}
+        style={MONO}
+      >
+        PROJECT / {project.index}
+      </div>
+    </div>
+  );
+}
+
+function ProjectDetails({ p }: { p: (typeof PROJECTS)[number] }) {
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-3 mb-3">
+        <h3
+          className="text-xl md:text-2xl font-black text-foreground group-hover:text-primary transition-colors duration-200"
+          style={DISPLAY}
+        >
+          {p.title}
+        </h3>
+        <span
+          className="font-mono text-[9px] tracking-[0.2em] text-muted-foreground border border-border px-2 py-0.5"
+          style={MONO}
+        >
+          {p.year}
+        </span>
+      </div>
+      <p className="text-sm text-muted-foreground leading-relaxed mb-4 max-w-2xl">
+        {p.description}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {p.tags.map((t) => (
+          <span
+            key={t}
+            className="font-mono text-[10px] tracking-widest text-primary/80 border border-primary/20 px-2 py-0.5 bg-primary/5"
+            style={MONO}
+          >
+            {t}
+          </span>
+        ))}
+      </div>
+    </>
+  );
+}
 
 const SCRAMBLE_CHARS =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&";
@@ -430,7 +497,7 @@ export default function App() {
 
       {/* HERO */}
       <section
-        className="relative flex min-h-screen flex-col justify-center md:justify-end px-6 pb: 12md:pb-20 pt-12 md:pt-32 md:px-16 lg:px-24"
+        className="relative flex min-h-screen flex-col justify-end py-24 px-6 pb: 12md:pb-20 pt-12 md:pt-32 md:px-16 lg:px-24"
         id="hero"
       >
         <div
@@ -474,7 +541,7 @@ export default function App() {
             className="mb-7 block whitespace-nowrap tracking-tight text-foreground md:mb-9"
             style={{
               ...DISPLAY,
-              fontSize: "clamp(3.25rem, 10vw, 10rem)",
+              fontSize: "clamp(3rem, 10vw, 10rem)",
               marginLeft: "-0.035em",
               visibility: fontsReady ? "visible" : "hidden",
               willChange: "opacity",
@@ -664,7 +731,46 @@ export default function App() {
           </a>
         </div>
 
-        <div className="divide-y divide-border">
+        <div className="md:hidden">
+          <Carousel opts={{ align: "start" }}>
+            <CarouselContent className="-ml-4">
+              {PROJECTS.map((p) => (
+                <CarouselItem key={p.index} className="basis-[88%] pl-4">
+                  <article
+                    className="project-row group border border-border bg-card p-4"
+                    data-cursor
+                  >
+                    {p.cover && <ProjectCover project={p} />}
+                    <ProjectDetails p={p} />
+                    <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
+                      <span
+                        className="font-mono text-xs text-muted-foreground"
+                        style={MONO}
+                      >
+                        {p.index} / {PROJECTS.length}
+                      </span>
+                      <a
+                        href={p.github}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                        title={UI_TEXT.projectGithubTitle}
+                      >
+                        <Github size={15} />
+                      </a>
+                    </div>
+                  </article>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <div className="mt-5 flex justify-end gap-2">
+              <CarouselPrevious className="static translate-y-0" />
+              <CarouselNext className="static translate-y-0" />
+            </div>
+          </Carousel>
+        </div>
+
+        <div className="hidden divide-y divide-border md:block">
           {PROJECTS.map((p) => (
             <div
               key={p.index}
@@ -678,34 +784,8 @@ export default function App() {
                 {p.index}
               </span>
               <div>
-                <div className="flex flex-wrap items-center gap-3 mb-3">
-                  <h3
-                    className="text-xl md:text-2xl font-black text-foreground group-hover:text-primary transition-colors duration-200"
-                    style={DISPLAY}
-                  >
-                    {p.title}
-                  </h3>
-                  <span
-                    className="font-mono text-[9px] tracking-[0.2em] text-muted-foreground border border-border px-2 py-0.5"
-                    style={MONO}
-                  >
-                    {p.year}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-4 max-w-2xl">
-                  {p.description}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {p.tags.map((t) => (
-                    <span
-                      key={t}
-                      className="font-mono text-[10px] tracking-widest text-primary/80 border border-primary/20 px-2 py-0.5 bg-primary/5"
-                      style={MONO}
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
+                {p.cover && <ProjectCover project={p} />}
+                <ProjectDetails p={p} />
               </div>
               <div className="flex items-start gap-3 pt-1">
                 <a

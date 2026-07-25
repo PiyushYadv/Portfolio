@@ -59,6 +59,9 @@ export const PROJECTS = [
     description:
       "Scalable collaborative editing platform with Spring Boot microservices, Kafka-based domain decoupling, Yjs CRDT synchronization, a Node.js WebSocket sidecar, Redis-backed debounced persistence, and PostgreSQL recovery.",
     year: "2026",
+    // cover: "https://opengraph.githubassets.com/1/PiyushYadv/synapse",
+    cover: "/synapse.png",
+    coverText: "dark",
     github: "https://github.com/PiyushYadv/synapse",
     live: null,
   },
@@ -69,6 +72,8 @@ export const PROJECTS = [
     description:
       "Fault-tolerant distributed key-value store in Go with a pure Raft consensus state machine, custom LSM storage engine, MemTables, Bloom filters, TCP networking, Cobra CLI, and Docker-based local cluster orchestration.",
     year: "2026",
+    cover: "/nimbus.png",
+    coverText: "light",
     github: "https://github.com/PiyushYadv/nimbus",
     live: null,
   },
@@ -96,6 +101,8 @@ export const PROJECTS = [
     description:
       "Secure Text-to-SQL assistant with AST-based read-only enforcement using SQLGlot, encrypted multi-tenant database credentials, and a privacy-preserving Schema RAG pipeline that embeds structural metadata instead of row data.",
     year: "2025",
+    cover: "/recall.png",
+    coverText: "dark",
     github: "https://github.com/PiyushYadv/recall",
     live: null,
   },
@@ -106,6 +113,7 @@ export const PROJECTS = [
     description:
       "Dataset-agnostic link prediction framework for multiplex graphs with intra-layer message passing, inter-layer semantic attention, leakage-safe data ingestion, and scalable neighbor sampling for massive graph training.",
     year: "2026",
+    // cover: "https://opengraph.githubassets.com/1/PiyushYadv/mplx-lp",
     github: "https://github.com/PiyushYadv/mplx-lp",
     live: null,
   },
