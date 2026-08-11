@@ -54,6 +54,66 @@ export const ABOUT = {
 export const PROJECTS = [
   {
     index: "01",
+
+    title: "DevRamp — Codebase Onboarding Assistant",
+
+    tags: ["React", "TypeScript", "FastAPI", "Pinecone", "Tree-sitter"],
+
+    description:
+      "AI-powered codebase onboarding assistant with a non-blocking FastAPI RAG backend, Pinecone vector retrieval, SSE token streaming, Tree-sitter AST-based code indexing, and a React/TypeScript workspace with Mermaid architecture graphs and clickable source citations.",
+
+    year: "2026",
+
+    cover: "/devramp.png",
+
+    coverText: "light",
+
+    github: "https://github.com/piyushyadv/devramp",
+
+    live: null,
+  },
+  {
+    index: "02",
+
+    title: "SplitSync — Expense Settlement Platform",
+
+    tags: ["Java", "Spring Boot", "Next.js", "Redis", "Supabase", "PostgreSQL"],
+
+    description:
+      "Multi-currency expense settlement platform with a Spring Boot greedy graph optimization engine, Gemini Vision receipt parsing through the Vercel AI SDK, Zod schema validation, Redis exchange-rate caching, and a normalized PostgreSQL/Supabase data model.",
+
+    year: "2026",
+
+    cover: "/splitsync.png",
+
+    coverText: "dark",
+
+    github: "https://github.com/piyushyadv/splitsync",
+
+    live: null,
+  },
+  {
+    index: "03",
+
+    title: "Sentinel.log — AI Log Intelligence",
+
+    tags: ["Python", "PyTorch", "FastAPI", "Next.js", "Gemini"],
+
+    description:
+      "AI-powered log intelligence platform that parses server logs with Drain3, detects anomalous event sequences using a PyTorch LSTM, and delivers near-real-time anomaly visualization and Gemini-powered diagnostics through a Next.js dashboard.",
+
+    year: "2026",
+
+    cover: "/sentinel-log.png",
+
+    coverText: "light",
+
+    github: "https://github.com/piyushyadv/sentinel-log",
+
+    live: null,
+  },
+  {
+    index: "04",
     title: "Synapse — Live Collaborative Workspace",
     tags: ["React", "Spring Boot", "Kafka", "Redis", "PostgreSQL"],
     description:
@@ -66,7 +126,7 @@ export const PROJECTS = [
     live: null,
   },
   {
-    index: "02",
+    index: "05",
     title: "Nimbus — Distributed Key-Value Store",
     tags: ["Go", "Raft", "LSM Tree", "TCP", "Cobra", "Docker"],
     description:
@@ -78,7 +138,7 @@ export const PROJECTS = [
     live: null,
   },
   {
-    index: "03",
+    index: "06",
     title: "NanoBook — Micro-Matching Engine",
     tags: ["C++20", "Google Benchmark", "Linux perf"],
     description:
@@ -88,7 +148,7 @@ export const PROJECTS = [
     live: null,
   },
   {
-    index: "04",
+    index: "07",
     title: "Recall — Secure Text-to-SQL Assistant",
     tags: [
       "Python",
@@ -107,7 +167,7 @@ export const PROJECTS = [
     live: null,
   },
   {
-    index: "05",
+    index: "08",
     title: "Multi-Relational Link Prediction via Inter-Layer GNNs",
     tags: ["Python", "PyTorch", "PyTorch Geometric"],
     description:
@@ -163,24 +223,24 @@ export const STATS = [
 
 export const EXPERIENCE = [
   {
-    role: "Full Stack Developer Intern",
+    role: "Software Developer Intern",
     company: "NPTEL, IIT Ropar",
     period: "Jan 2026 — Mar 2026",
     type: "Internship",
     points: [
-      "Developed Vi-Notes, a full-stack note-taking platform using MongoDB, Express.js, React, and Node.js.",
-      "Engineered secure RESTful APIs with JWT/OAuth 2.0 authentication and Role-Based Access Control (RBAC).",
-      "Built an AI-powered authorship verification system analyzing WPM, keystrokes, pauses, and copy-paste patterns to flag AI-assisted or externally pasted content.",
+      "Built Vi-Notes, a MERN authorship-verification platform correlating writing with keystroke dynamics, editing behavior, typing rhythm, and paste activity.",
+      "Implemented Node.js/Express REST APIs with JWT, OAuth 2.0, and RBAC; used React Query and Context API for client state and authentication.",
+      "Incorporated keystroke dynamics (dwell/flight time, typing speed, paste detection) for authorship verification.",
     ],
   },
   {
-    role: "Freelance Software Developer",
+    role: "Freelance Web Developer",
     company: "Wixthemestore",
     period: "May 2024 — Jun 2025",
     type: "Freelance",
     points: [
-      "Architected and deployed full-stack web and mobile applications for client requirements.",
-      "Managed projects end-to-end, from initial design and development through production release.",
+      "Built 15+ client websites using Wix Studio (Velo) and Shopify (Liquid), with responsive designs.",
+      "Implemented custom frontend features, CMS functionality, and theme modifications while resolving client-reported issues.",
     ],
   },
   {
@@ -202,7 +262,7 @@ export const EDUCATION = [
     period: "2023 — 2027",
     gpa: "8.76 CGPA",
     highlights: [
-      "Relevant: DSA, OS, DBMS, Computer Networks, Machine Learning, Software Engineering",
+      "Relevant: DSA, OS, OOPS, DBMS, Computer Networks, Machine Learning, Software Engineering",
     ],
   },
   {
