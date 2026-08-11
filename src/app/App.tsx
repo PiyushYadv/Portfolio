@@ -13,13 +13,15 @@ import {
   Briefcase,
   Award,
 } from "lucide-react";
+import { FaGithub, FaLinkedin } from "react-icons/fa";
+import { SiLeetcode, SiCodeforces } from "react-icons/si";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "./components/ui/carousel";
+} from "./components/ui/carousel.tsx";
 import {
   ABOUT,
   CONTACT,
@@ -35,7 +37,7 @@ import {
   STATS,
   UI_TEXT,
   // ACHIEVEMENTS,
-} from "./data/portfolio";
+} from "./data/portfolio.ts";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -150,20 +152,20 @@ function useFontsReady(timeout = 1800) {
     }
 
     let cancelled = false;
-    const fallback = window.setTimeout(() => {
+    const fallback = setTimeout(() => {
       if (!cancelled) setReady(true);
     }, timeout);
 
     document.fonts.ready.then(() => {
       if (!cancelled) {
-        window.clearTimeout(fallback);
+        clearTimeout(fallback);
         setReady(true);
       }
     });
 
     return () => {
       cancelled = true;
-      window.clearTimeout(fallback);
+      clearTimeout(fallback);
     };
   }, [timeout]);
 
@@ -263,20 +265,20 @@ function CountUp({
         if (!entry.isIntersecting || triggered.current) return;
         triggered.current = true;
 
-        gsap.to(
-          { v: 0 },
-          {
-            v: value,
-            duration: 1.4,
-            ease: "power2.out",
-            onUpdate: function () {
-              el.textContent = formatValue(this.targets()[0].v) + suffix;
-            },
-            onComplete: () => {
-              el.textContent = formatValue(value) + suffix;
-            },
+        const counter = { v: 0 };
+
+        gsap.to(counter, {
+          v: value,
+          duration: 1.4,
+          ease: "power2.out",
+          onUpdate: () => {
+            el.textContent = formatValue(counter.v) + suffix;
           },
-        );
+          onComplete: () => {
+            el.textContent = formatValue(value) + suffix;
+          },
+        });
+
         observer.disconnect();
       },
       { threshold: 0.4 },
@@ -497,7 +499,7 @@ export default function App() {
 
       {/* HERO */}
       <section
-        className="relative flex min-h-screen flex-col justify-end py-24 px-6 pb: 12md:pb-20 pt-12 md:pt-32 md:px-16 lg:px-24"
+        className="relative flex min-h-screen flex-col justify-end py-24 px-6 pb-12 md:pb-20 pt-12 md:pt-32 md:px-16 lg:px-24"
         id="hero"
       >
         <div
@@ -595,7 +597,7 @@ export default function App() {
                 rel="noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
-                <Github size={18} />
+                <FaGithub size={18} />
               </a>
               <a
                 href={PROFILE.social.linkedin}
@@ -603,7 +605,23 @@ export default function App() {
                 rel="noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
-                <Linkedin size={18} />
+                <FaLinkedin size={18} />
+              </a>
+              <a
+                href={PROFILE.social.leetcode}
+                target="_blank"
+                rel="noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <SiLeetcode size={18} />
+              </a>
+              <a
+                href={PROFILE.social.codeforces}
+                target="_blank"
+                rel="noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <SiCodeforces size={18} />
               </a>
               <a
                 href={emailHref}

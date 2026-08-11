@@ -15,6 +15,8 @@ export const PROFILE = {
   social: {
     github: "https://github.com/PiyushYadv",
     linkedin: "https://linkedin.com/in/piyushyadav276",
+    leetcode: "https://leetcode.com/PiyushYadv",
+    codeforces: "https://codeforces.com/profile/piyush.y276",
     email: "iampiyushyadv@gmail.com",
   },
 };
