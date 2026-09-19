@@ -2,29 +2,29 @@
 
 :root {
   --font-size: 16px;
-  --background: #0c0c0c;
-  --foreground: #ededed;
-  --card: #141414;
-  --card-foreground: #ededed;
-  --popover: #141414;
-  --popover-foreground: #ededed;
-  --primary: #b6ff00;
-  --primary-foreground: #0c0c0c;
-  --secondary: #1c1c1c;
-  --secondary-foreground: #ededed;
-  --muted: #1c1c1c;
-  --muted-foreground: #888888;
-  --accent: #b6ff00;
-  --accent-foreground: #0c0c0c;
-  --destructive: #ff3333;
+  --background: #17100a;
+  --foreground: #f2e9dd;
+  --card: #211710;
+  --card-foreground: #f2e9dd;
+  --popover: #211710;
+  --popover-foreground: #f2e9dd;
+  --primary: #f6b64c;
+  --primary-foreground: #1a1109;
+  --secondary: #2a1e14;
+  --secondary-foreground: #f2e9dd;
+  --muted: #2a1e14;
+  --muted-foreground: #b9a48d;
+  --accent: #f6b64c;
+  --accent-foreground: #1a1109;
+  --destructive: #e5533b;
   --destructive-foreground: #ffffff;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: transparent;
-  --input-background: #1c1c1c;
-  --switch-background: #333333;
+  --border: #3a2a1c;
+  --input: #2a1e14;
+  --input-background: #2a1e14;
+  --switch-background: #3a2a1c;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: #b6ff00;
+  --ring: #f6b64c;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -42,25 +42,25 @@
 }
 
 .dark {
-  --background: #0c0c0c;
-  --foreground: #ededed;
-  --card: #141414;
-  --card-foreground: #ededed;
-  --popover: #141414;
-  --popover-foreground: #ededed;
-  --primary: #b6ff00;
-  --primary-foreground: #0c0c0c;
-  --secondary: #1c1c1c;
-  --secondary-foreground: #ededed;
-  --muted: #1c1c1c;
-  --muted-foreground: #888888;
-  --accent: #b6ff00;
-  --accent-foreground: #0c0c0c;
-  --destructive: #ff3333;
+  --background: #17100a;
+  --foreground: #f2e9dd;
+  --card: #211710;
+  --card-foreground: #f2e9dd;
+  --popover: #211710;
+  --popover-foreground: #f2e9dd;
+  --primary: #f6b64c;
+  --primary-foreground: #1a1109;
+  --secondary: #2a1e14;
+  --secondary-foreground: #f2e9dd;
+  --muted: #2a1e14;
+  --muted-foreground: #b9a48d;
+  --accent: #f6b64c;
+  --accent-foreground: #1a1109;
+  --destructive: #e5533b;
   --destructive-foreground: #ffffff;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: #1c1c1c;
-  --ring: #b6ff00;
+  --border: #3a2a1c;
+  --input: #2a1e14;
+  --ring: #f6b64c;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   --chart-1: oklch(0.488 0.243 264.376);
@@ -177,5 +177,19 @@
     font-size: var(--text-base);
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--primary) 32%, transparent);
+    color: var(--foreground);
+  }
+
+  /* Hide scrollbars until scrolling; keep them out of the layout */
+  html {
+    scrollbar-width: none;
+  }
+  html::-webkit-scrollbar {
+    width: 0;
+    height: 0;
   }
 }

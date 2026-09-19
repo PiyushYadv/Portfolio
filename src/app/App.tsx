@@ -1,1157 +1,951 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import {
-  ArrowUpRight,
   Github,
   Linkedin,
   Mail,
   ExternalLink,
   Download,
-  GraduationCap,
-  Briefcase,
-  Award,
+  MapPin,
+  Calendar,
+  ChevronRight,
+  ArrowUpRight,
 } from "lucide-react";
-import { FaGithub, FaLinkedin } from "react-icons/fa";
-import { SiLeetcode, SiCodeforces } from "react-icons/si";
 import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "./components/ui/carousel.tsx";
-import {
-  ABOUT,
-  CONTACT,
+  DISPLAY,
   EDUCATION,
   EXPERIENCE,
-  FOOTER,
-  NAV_ITEMS,
-  PROFILE,
+  MONO,
   PROJECTS,
   RESUME_URL,
-  SECTION_HEADINGS,
   SKILLS,
-  STATS,
-  UI_TEXT,
-  // ACHIEVEMENTS,
-} from "./data/portfolio.ts";
+} from "./data/portfolio";
+import { CodeforcesMark, LeetCodeMark } from "./components/common/Logo";
+import { ProjectCard } from "./components/common/ProjectCard";
+import { Achievements } from "./components/common/Achievements";
+import { AboutPhoto } from "./components/common/AboutPhoto";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-function ProjectCover({ project }: { project: (typeof PROJECTS)[number] }) {
-  const [imageFailed, setImageFailed] = useState(false);
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
 
-  if (!project.cover) return null;
-
+export function Tag({ children }: { children: React.ReactNode }) {
   return (
-    <div className="project-cover relative mb-5 h-44 overflow-hidden border border-border bg-muted md:h-48 md:max-w-[520px]">
-      {!imageFailed ? (
-        <img
-          src={project.cover}
-          alt={`${project.title} project screenshot`}
-          className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
-          onError={() => setImageFailed(true)}
-        />
-      ) : null}
-      <div
-        className={`absolute bottom-3 left-3 font-mono text-[9px] tracking-[0.25em] ${project.coverText === "dark" ? "text-black/80" : "text-white/90"}`}
-        style={MONO}
-      >
-        PROJECT / {project.index}
-      </div>
-    </div>
-  );
-}
-
-function ProjectDetails({ p }: { p: (typeof PROJECTS)[number] }) {
-  return (
-    <>
-      <div className="flex flex-wrap items-center gap-3 mb-3">
-        <h3
-          className="text-xl md:text-2xl font-black text-foreground group-hover:text-primary transition-colors duration-200"
-          style={DISPLAY}
-        >
-          {p.title}
-        </h3>
-        <span
-          className="font-mono text-[9px] tracking-[0.2em] text-muted-foreground border border-border px-2 py-0.5"
-          style={MONO}
-        >
-          {p.year}
-        </span>
-      </div>
-      <p className="text-sm text-muted-foreground leading-relaxed mb-4 max-w-2xl">
-        {p.description}
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {p.tags.map((t) => (
-          <span
-            key={t}
-            className="font-mono text-[10px] tracking-widest text-primary/80 border border-primary/20 px-2 py-0.5 bg-primary/5"
-            style={MONO}
-          >
-            {t}
-          </span>
-        ))}
-      </div>
-    </>
-  );
-}
-
-const SCRAMBLE_CHARS =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&";
-
-function useScrambleText(target: string, duration = 1200) {
-  const [display, setDisplay] = useState(target);
-  const rafRef = useRef<number | null>(null);
-
-  const run = () => {
-    const start = performance.now();
-    const step = (now: number) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const resolved = Math.floor(progress * target.length);
-      let out = "";
-      for (let i = 0; i < target.length; i++) {
-        if (i < resolved) {
-          out += target[i];
-        } else if (target[i] === " ") {
-          out += " ";
-        } else {
-          out +=
-            SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
-        }
-      }
-      setDisplay(out);
-      if (progress < 1) rafRef.current = requestAnimationFrame(step);
-    };
-    rafRef.current = requestAnimationFrame(step);
-  };
-
-  useEffect(() => {
-    const t = setTimeout(run, 300);
-    return () => {
-      clearTimeout(t);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [target]);
-
-  return display;
-}
-
-function useFontsReady(timeout = 1800) {
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    if (!("fonts" in document)) {
-      setReady(true);
-      return;
-    }
-
-    let cancelled = false;
-    const fallback = setTimeout(() => {
-      if (!cancelled) setReady(true);
-    }, timeout);
-
-    document.fonts.ready.then(() => {
-      if (!cancelled) {
-        clearTimeout(fallback);
-        setReady(true);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-      clearTimeout(fallback);
-    };
-  }, [timeout]);
-
-  return ready;
-}
-
-function CursorFollower() {
-  const dotRef = useRef<HTMLDivElement>(null);
-  const ringRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const dot = dotRef.current;
-    const ring = ringRef.current;
-    if (!dot || !ring) return;
-
-    const dotX = gsap.quickTo(dot, "x", { duration: 0.08, ease: "power3.out" });
-    const dotY = gsap.quickTo(dot, "y", { duration: 0.08, ease: "power3.out" });
-    const ringX = gsap.quickTo(ring, "x", {
-      duration: 0.28,
-      ease: "power3.out",
-    });
-    const ringY = gsap.quickTo(ring, "y", {
-      duration: 0.28,
-      ease: "power3.out",
-    });
-
-    const onMove = (e: MouseEvent) => {
-      dotX(e.clientX);
-      dotY(e.clientY);
-      ringX(e.clientX);
-      ringY(e.clientY);
-    };
-    const onEnter = () => {
-      gsap.to(ring, { scale: 2.2, opacity: 0.6, duration: 0.25 });
-      gsap.to(dot, { scale: 0, duration: 0.2 });
-    };
-    const onLeave = () => {
-      gsap.to(ring, { scale: 1, opacity: 1, duration: 0.25 });
-      gsap.to(dot, { scale: 1, duration: 0.2 });
-    };
-
-    const cursorTargets = Array.from(
-      document.querySelectorAll("a, button, [data-cursor]"),
-    );
-
-    document.addEventListener("mousemove", onMove);
-    cursorTargets.forEach((el) => {
-      el.addEventListener("mouseenter", onEnter);
-      el.addEventListener("mouseleave", onLeave);
-    });
-
-    return () => {
-      document.removeEventListener("mousemove", onMove);
-      cursorTargets.forEach((el) => {
-        el.removeEventListener("mouseenter", onEnter);
-        el.removeEventListener("mouseleave", onLeave);
-      });
-    };
-  }, []);
-
-  return (
-    <>
-      <div
-        ref={dotRef}
-        className="pointer-events-none fixed top-0 left-0 z-[9999] h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary"
-        style={{ willChange: "transform" }}
-      />
-      <div
-        ref={ringRef}
-        className="pointer-events-none fixed top-0 left-0 z-[9998] h-9 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/60"
-        style={{ willChange: "transform" }}
-      />
-    </>
-  );
-}
-
-function CountUp({
-  value,
-  suffix,
-  decimals = 0,
-}: {
-  value: number;
-  suffix: string;
-  decimals?: number;
-}) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const triggered = useRef(false);
-  const formatValue = (n: number) =>
-    decimals > 0 ? n.toFixed(decimals) : Math.floor(n).toString();
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting || triggered.current) return;
-        triggered.current = true;
-
-        const counter = { v: 0 };
-
-        gsap.to(counter, {
-          v: value,
-          duration: 1.4,
-          ease: "power2.out",
-          onUpdate: () => {
-            el.textContent = formatValue(counter.v) + suffix;
-          },
-          onComplete: () => {
-            el.textContent = formatValue(value) + suffix;
-          },
-        });
-
-        observer.disconnect();
-      },
-      { threshold: 0.4 },
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [value, suffix, decimals]);
-
-  return (
-    <span ref={ref}>
-      {formatValue(0)}
-      {suffix}
+    <span
+      className="inline-block rounded-md border border-border bg-secondary/60 px-2 py-0.5 text-[11px] text-muted-foreground"
+      style={MONO}
+    >
+      {children}
     </span>
   );
 }
 
-const MONO: React.CSSProperties = { fontFamily: "'JetBrains Mono', monospace" };
-const DISPLAY: React.CSSProperties = {
-  fontFamily: "'Archivo Black', sans-serif",
-  lineHeight: 0.92,
-};
+export function SectionLabel({ n, label }: { n: string; label: string }) {
+  return (
+    <div className="reveal-up mb-12 flex items-center gap-4">
+      <span className="text-xs text-primary" style={MONO}>
+        {n}
+      </span>
+      <span className="h-px w-10 bg-gradient-to-r from-primary/60 to-transparent" />
+      <h2
+        className="text-3xl font-bold tracking-tight text-foreground"
+        style={DISPLAY}
+      >
+        {label}
+      </h2>
+    </div>
+  );
+}
+
+// Magnetic hover for buttons / links
+export function useMagnetic<T extends HTMLElement>(strength = 0.35) {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || window.matchMedia("(pointer: coarse)").matches) return;
+    const move = (e: MouseEvent) => {
+      const r = el.getBoundingClientRect();
+      const x = e.clientX - (r.left + r.width / 2);
+      const y = e.clientY - (r.top + r.height / 2);
+      gsap.to(el, {
+        x: x * strength,
+        y: y * strength,
+        duration: 0.4,
+        ease: "power3.out",
+      });
+    };
+    const leave = () =>
+      gsap.to(el, { x: 0, y: 0, duration: 0.6, ease: "elastic.out(1,0.4)" });
+    el.addEventListener("mousemove", move);
+    el.addEventListener("mouseleave", leave);
+    return () => {
+      el.removeEventListener("mousemove", move);
+      el.removeEventListener("mouseleave", leave);
+    };
+  }, [strength]);
+  return ref;
+}
+
+// Terminal-style typing animation for the code panel
+export function useTyping(lines: string[], delayStart = 600) {
+  const [displayed, setDisplayed] = useState<string[]>([]);
+  const [currentLine, setCurrentLine] = useState(0);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    if (done) return;
+    let char = 0;
+    let interval: ReturnType<typeof setInterval>;
+    const startDelay = setTimeout(
+      () => {
+        interval = setInterval(() => {
+          const line = lines[currentLine];
+          if (char < line.length) {
+            char++;
+            setDisplayed((prev) => {
+              const next = [...prev];
+              next[currentLine] = line.slice(0, char);
+              return next;
+            });
+          } else {
+            clearInterval(interval);
+            if (currentLine < lines.length - 1) {
+              setTimeout(() => setCurrentLine((l) => l + 1), 160);
+            } else {
+              setDone(true);
+            }
+          }
+        }, 26);
+      },
+      currentLine === 0 ? delayStart : 0,
+    );
+    return () => {
+      clearTimeout(startDelay);
+      clearInterval(interval);
+    };
+  }, [currentLine, done]);
+
+  return { displayed, done };
+}
+
+// GSAP-free character scramble that decodes into the target text
+export function ScrambleText({
+  text,
+  className,
+  style,
+  start,
+}: {
+  text: string;
+  className?: string;
+  style?: React.CSSProperties;
+  start: boolean;
+}) {
+  const [out, setOut] = useState(text.replace(/[^ ]/g, " "));
+  useEffect(() => {
+    if (!start) return;
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ<>/{}[]#$%&*01";
+    let frame = 0;
+    let raf = 0;
+    const tick = () => {
+      const revealed = frame / 2.2;
+      let s = "";
+      for (let i = 0; i < text.length; i++) {
+        if (text[i] === " ") {
+          s += " ";
+          continue;
+        }
+        if (i < revealed) s += text[i];
+        else s += chars[Math.floor(Math.random() * chars.length)];
+      }
+      setOut(s);
+      frame++;
+      if (revealed <= text.length) raf = requestAnimationFrame(tick);
+      else setOut(text);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [start, text]);
+  return (
+    <span className={className} style={style}>
+      {out}
+    </span>
+  );
+}
+
+// ─── HERO EMBER FIELD (canvas) ──────────────────────────────────────────────────
+
+export function EmberField() {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let w = 0,
+      h = 0,
+      raf = 0;
+    const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+
+    let particles: ReturnType<typeof make>[] = [];
+    const make = () => ({
+      x: Math.random() * w,
+      y: h + Math.random() * h,
+      r: (Math.random() * 2 + 0.5) * dpr,
+      vy: -(Math.random() * 0.35 + 0.12) * dpr,
+      vx: (Math.random() - 0.5) * 0.15 * dpr,
+      hue: 28 + Math.random() * 22,
+      alpha: Math.random() * 0.5 + 0.15,
+      seed: Math.random() * 1000,
+    });
+
+    const resize = () => {
+      w = canvas.width = canvas.offsetWidth * dpr;
+      h = canvas.height = canvas.offsetHeight * dpr;
+      const count = Math.min(90, Math.floor(canvas.offsetWidth / 11));
+      particles = Array.from({ length: count }, make);
+    };
+    resize();
+
+    const onMove = (e: MouseEvent) => {
+      const r = canvas.getBoundingClientRect();
+      mouse.tx = (e.clientX - r.left - r.width / 2) / r.width;
+      mouse.ty = (e.clientY - r.top - r.height / 2) / r.height;
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("resize", resize);
+
+    const loop = () => {
+      mouse.x += (mouse.tx - mouse.x) * 0.05;
+      mouse.y += (mouse.ty - mouse.y) * 0.05;
+      ctx.clearRect(0, 0, w, h);
+      for (const p of particles) {
+        p.y += p.vy;
+        p.x += p.vx + Math.sin((p.y + p.seed) * 0.008) * 0.3 * dpr;
+        if (p.y < -12) {
+          p.y = h + 12;
+          p.x = Math.random() * w;
+        }
+        const px = p.x + mouse.x * 46 * dpr * p.r;
+        const py = p.y + mouse.y * 22 * dpr;
+        ctx.beginPath();
+        ctx.arc(px, py, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue}, 92%, 62%, ${p.alpha})`;
+        ctx.shadowBlur = 9 * dpr;
+        ctx.shadowColor = `hsla(${p.hue}, 92%, 55%, 0.85)`;
+        ctx.fill();
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    loop();
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+  return (
+    <canvas ref={ref} className="absolute inset-0 h-full w-full" aria-hidden />
+  );
+}
+
+// ─── FOLLOWER GLOW ───────────────────────────────────────────────────────────
+
+export function FollowerGlow() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || window.matchMedia("(pointer: coarse)").matches) return;
+    const move = (e: MouseEvent) =>
+      gsap.to(el, {
+        x: e.clientX,
+        y: e.clientY,
+        duration: 0.5,
+        ease: "power2.out",
+      });
+    document.addEventListener("mousemove", move);
+    return () => document.removeEventListener("mousemove", move);
+  }, []);
+  return (
+    <div
+      ref={ref}
+      aria-hidden
+      className="pointer-events-none fixed left-0 top-0 z-[9998] hidden h-[380px] w-[380px] -translate-x-1/2 -translate-y-1/2 rounded-full md:block"
+      style={{
+        background:
+          "radial-gradient(circle, rgba(246,182,76,0.10) 0%, rgba(246,182,76,0) 65%)",
+        willChange: "transform",
+      }}
+    />
+  );
+}
+
+// ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 export default function App() {
   const navRef = useRef<HTMLElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const subtitleRef = useRef<HTMLParagraphElement>(null);
-  const heroMetaRef = useRef<HTMLDivElement>(null);
-  const heroCTARef = useRef<HTMLDivElement>(null);
-  const skillsRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [heroReady, setHeroReady] = useState(false);
 
-  const fontsReady = useFontsReady();
-  const heroRole = useScrambleText(PROFILE.role, 1200);
-  const emailHref = `mailto:${PROFILE.social.email}`;
+  const primaryBtn = useMagnetic<HTMLButtonElement>(0.3);
 
-  useLayoutEffect(() => {
+  const terminalLines = [
+    "const dev = {",
+    '  name: "Piyush Yadav",',
+    '  role: "Software Developer",',
+    '  status: "open to work",',
+    "};",
+  ];
+  const { displayed, done } = useTyping(terminalLines, 700);
+
+  useEffect(() => {
+    const t = setTimeout(() => setHeroReady(true), 350);
     const ctx = gsap.context(() => {
       gsap.fromTo(
         navRef.current,
-        { y: -40, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, ease: "power3.out", delay: 0.2 },
+        { y: -24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: "power2.out" },
       );
 
       gsap.fromTo(
-        [subtitleRef.current, heroMetaRef.current, heroCTARef.current],
-        { y: 30, opacity: 0 },
+        ".hero-stagger",
+        { y: 26, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          duration: 0.9,
+          duration: 0.7,
           ease: "power3.out",
-          stagger: 0.15,
-          delay: 0.9,
+          stagger: 0.1,
+          delay: 0.35,
         },
       );
-
-      gsap.set(".reveal-up", { y: 48, opacity: 0 });
-      gsap.set(".project-row", { x: -30, opacity: 0 });
-      gsap.set(".exp-row", { x: 30, opacity: 0 });
-      gsap.set(".skill-cell", { scale: 0.88, opacity: 0 });
-      gsap.set(".edu-card", { y: 36, opacity: 0 });
 
       ScrollTrigger.batch(".reveal-up", {
         onEnter: (els) =>
-          gsap.to(els, {
-            y: 0,
-            opacity: 1,
-            duration: 0.85,
-            ease: "power3.out",
-            stagger: 0.1,
-          }),
+          gsap.fromTo(
+            els,
+            { y: 34, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.6,
+              ease: "power2.out",
+              stagger: 0.08,
+            },
+          ),
         start: "top 88%",
-        once: true,
       });
-
-      ScrollTrigger.batch(".project-row", {
+      ScrollTrigger.batch(".reveal-card", {
         onEnter: (els) =>
-          gsap.to(els, {
-            x: 0,
-            opacity: 1,
-            duration: 0.7,
-            ease: "power3.out",
-            stagger: 0.12,
-          }),
+          gsap.fromTo(
+            els,
+            { y: 28, opacity: 0, scale: 0.97 },
+            {
+              y: 0,
+              opacity: 1,
+              scale: 1,
+              duration: 0.55,
+              ease: "power2.out",
+              stagger: 0.09,
+            },
+          ),
         start: "top 90%",
-        once: true,
       });
-
-      ScrollTrigger.batch(".exp-row", {
+      ScrollTrigger.batch(".reveal-left", {
         onEnter: (els) =>
-          gsap.to(els, {
-            x: 0,
-            opacity: 1,
-            duration: 0.7,
-            ease: "power3.out",
-            stagger: 0.15,
-          }),
+          gsap.fromTo(
+            els,
+            { x: -22, opacity: 0 },
+            {
+              x: 0,
+              opacity: 1,
+              duration: 0.55,
+              ease: "power2.out",
+              stagger: 0.08,
+            },
+          ),
         start: "top 90%",
-        once: true,
-      });
-
-      ScrollTrigger.batch(".skill-cell", {
-        onEnter: (els) =>
-          gsap.to(els, {
-            scale: 1,
-            opacity: 1,
-            duration: 0.55,
-            ease: "back.out(1.5)",
-            stagger: 0.04,
-          }),
-        start: "top 88%",
-        once: true,
-      });
-
-      ScrollTrigger.batch(".edu-card", {
-        onEnter: (els) =>
-          gsap.to(els, {
-            y: 0,
-            opacity: 1,
-            duration: 0.7,
-            ease: "power3.out",
-            stagger: 0.18,
-          }),
-        start: "top 88%",
-        once: true,
       });
 
       ScrollTrigger.create({
-        start: "top -80",
+        start: "top -70",
         onUpdate: (self) => {
-          if (navRef.current) {
-            gsap.to(navRef.current, {
-              backgroundColor:
-                self.progress > 0.01 ? "rgba(12,12,12,0.95)" : "transparent",
-              backdropFilter: self.progress > 0.01 ? "blur(12px)" : "none",
-              duration: 0.3,
-            });
-          }
+          if (!navRef.current) return;
+          gsap.to(navRef.current, {
+            backgroundColor:
+              self.progress > 0 ? "rgba(23,16,10,0.82)" : "rgba(23,16,10,0)",
+            backdropFilter: self.progress > 0 ? "blur(12px)" : "blur(0px)",
+            borderBottomColor:
+              self.progress > 0 ? "rgba(58,42,28,1)" : "rgba(58,42,28,0)",
+            duration: 0.25,
+          });
         },
       });
     });
-
-    return () => ctx.revert();
+    return () => {
+      clearTimeout(t);
+      ctx.revert();
+    };
   }, []);
-
-  useLayoutEffect(() => {
-    const title = titleRef.current;
-    if (!title || !fontsReady) return;
-
-    const ctx = gsap.context(() => {
-      gsap.set(title, { autoAlpha: 1 });
-      gsap.fromTo(
-        ".hero-name-char",
-        { autoAlpha: 0 },
-        {
-          autoAlpha: 1,
-          duration: 0.5,
-          ease: "power2.out",
-          stagger: 0.035,
-          delay: 0.2,
-        },
-      );
-    }, title);
-
-    return () => ctx.revert();
-  }, [fontsReady]);
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (el)
       gsap.to(window, {
-        scrollTo: { y: el, offsetY: 72 },
-        duration: 0.9,
-        ease: "power3.inOut",
+        scrollTo: { y: el, offsetY: 70 },
+        duration: 0.8,
+        ease: "power2.inOut",
       });
   };
 
+  const socials = (
+    <>
+      <a
+        href="https://github.com/PiyushYadv"
+        target="_blank"
+        rel="noreferrer"
+        aria-label="GitHub"
+        className="rounded-lg border border-border p-2.5 text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:text-primary"
+      >
+        <Github size={17} />
+      </a>
+      <a
+        href="https://linkedin.com/in/piyushyadav276"
+        target="_blank"
+        rel="noreferrer"
+        aria-label="LinkedIn"
+        className="rounded-lg border border-border p-2.5 text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:text-primary"
+      >
+        <Linkedin size={17} />
+      </a>
+      <a
+        href="https://leetcode.com/PiyushYadv"
+        target="_blank"
+        rel="noreferrer"
+        aria-label="LeetCode"
+        className="rounded-lg border border-border p-2.5 text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:text-primary"
+      >
+        <LeetCodeMark size={17} />
+      </a>
+      <a
+        href="https://codeforces.com/profile/piyush.y276"
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Codeforces"
+        className="rounded-lg border border-border p-2.5 text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:text-primary"
+      >
+        <CodeforcesMark size={17} />
+      </a>
+      <a
+        href="mailto:iampiyushyadv@gmail.com"
+        aria-label="Email"
+        className="rounded-lg border border-border p-2.5 text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:text-primary"
+      >
+        <Mail size={17} />
+      </a>
+    </>
+  );
+
   return (
     <div
-      className="min-h-screen bg-background text-foreground overflow-x-hidden"
-      style={{ fontFamily: "'Inter', sans-serif", cursor: "none" }}
+      className="min-h-screen bg-background text-foreground"
+      style={{ fontFamily: "'Inter', sans-serif" }}
     >
-      <CursorFollower />
+      <FollowerGlow />
 
-      {/* NAV */}
+      {/* ── NAV ── */}
       <nav
         ref={navRef}
-        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 opacity-0 md:px-16"
+        className="fixed inset-x-0 top-0 z-50 border-b border-transparent"
       >
-        <button
-          className="font-mono text-xs tracking-[0.2em] text-muted-foreground hover:text-primary transition-colors"
-          style={MONO}
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        >
-          {PROFILE.navBrand}
-        </button>
-        <div className="hidden md:flex items-center gap-6">
-          {NAV_ITEMS.map((s) => (
-            <button
-              key={s}
-              onClick={() => scrollTo(s)}
-              className="font-mono text-[11px] tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground transition-colors"
-              style={MONO}
-            >
-              {s}
-            </button>
-          ))}
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <button
+            onClick={() => scrollTo("top")}
+            className="text-base font-bold tracking-tight text-foreground"
+            style={DISPLAY}
+          >
+            Piyush Yadav
+          </button>
+          <div className="hidden items-center gap-1 md:flex">
+            {[
+              { id: "work", label: "work" },
+              { id: "achievements", label: "achievements" },
+              { id: "about", label: "about" },
+              { id: "experience", label: "experience" },
+              { id: "education", label: "education" },
+              { id: "skills", label: "skills" },
+            ].map((s) => (
+              <button
+                key={s.id}
+                onClick={() => scrollTo(s.id)}
+                className="rounded-md px-3 py-1.5 text-sm capitalize text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+          <a
+            href={RESUME_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition-transform hover:-translate-y-0.5"
+          >
+            <Download size={14} /> Resume
+          </a>
         </div>
-        <a
-          href={RESUME_URL}
-          className="flex items-center gap-1.5 border border-primary/40 px-3 py-1.5 text-[11px] font-mono tracking-widest text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
-          style={MONO}
-        >
-          <Download size={11} />
-          {UI_TEXT.navResume}
-        </a>
       </nav>
 
-      {/* HERO */}
+      {/* ── HERO ── */}
       <section
-        className="relative flex min-h-screen flex-col justify-end py-24 px-6 pb-12 md:pb-20 pt-12 md:pt-32 md:px-16 lg:px-24"
-        id="hero"
+        id="top"
+        ref={heroRef}
+        className="relative flex min-h-screen items-center overflow-hidden"
       >
+        <EmberField />
+        {/* ambient glows */}
+        <div className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[900px] -translate-x-1/2 rounded-full bg-primary/[0.08] blur-[120px]" />
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.035]"
+          className="pointer-events-none absolute inset-0 opacity-[0.04]"
           style={{
             backgroundImage:
-              "linear-gradient(#b6ff00 1px, transparent 1px), linear-gradient(90deg, #b6ff00 1px, transparent 1px)",
-            backgroundSize: "80px 80px",
+              "linear-gradient(#f6b64c 1px,transparent 1px),linear-gradient(90deg,#f6b64c 1px,transparent 1px)",
+            backgroundSize: "56px 56px",
+            maskImage:
+              "radial-gradient(ellipse 70% 60% at 50% 40%,#000,transparent)",
           }}
         />
 
-        <div
-          className="absolute top-28 right-6 md:right-16 lg:right-24 flex flex-col items-end gap-1 opacity-0"
-          ref={heroMetaRef}
-        >
-          <span
-            className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground"
-            style={MONO}
-          >
-            {PROFILE.heroMeta[0]}
-          </span>
-          <span
-            className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground"
-            style={MONO}
-          >
-            {PROFILE.heroMeta[1]}
-          </span>
-        </div>
-
-        <div className="relative z-10 max-w-6xl">
-          <p
-            ref={subtitleRef}
-            className="mb-6 font-mono text-xs tracking-[0.3em] text-primary opacity-0"
-            style={MONO}
-          >
-            {PROFILE.portfolioLabel}
-          </p>
-
-          <h1
-            ref={titleRef}
-            className="mb-7 block whitespace-nowrap tracking-tight text-foreground md:mb-9"
-            style={{
-              ...DISPLAY,
-              fontSize: "clamp(3rem, 10vw, 10rem)",
-              marginLeft: "-0.035em",
-              visibility: fontsReady ? "visible" : "hidden",
-              willChange: "opacity",
-            }}
-            aria-label={PROFILE.name}
-          >
-            {PROFILE.name.split("").map((char, index) => (
-              <span
-                key={`${char}-${index}`}
-                aria-hidden="true"
-                className="hero-name-char inline-block"
-              >
-                {char === " " ? "\u00A0" : char}
+        <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 px-6 pb-20 pt-32 lg:grid-cols-[1.15fr_0.85fr]">
+          <div>
+            <div className="hero-stagger mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1.5 backdrop-blur">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
               </span>
-            ))}
-          </h1>
+              <span className="text-xs text-muted-foreground">
+                Open to full-time SWE roles · 2027
+              </span>
+              <span className="text-muted-foreground/40">·</span>
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <MapPin size={11} /> India / Remote
+              </span>
+            </div>
 
-          <p
-            className="mb-12 font-mono tracking-widest text-muted-foreground"
-            style={{ ...MONO, fontSize: "clamp(0.7rem, 1.4vw, 0.95rem)" }}
-          >
-            {heroRole}
-          </p>
-
-          <div
-            ref={heroCTARef}
-            className="flex flex-wrap items-center gap-4 opacity-0"
-          >
-            <button
-              onClick={() => scrollTo("projects")}
-              className="group flex items-center gap-3 bg-primary px-7 py-3.5 text-sm font-medium tracking-wide text-primary-foreground transition-all duration-200 hover:bg-primary/80"
+            <h1
+              className="hero-stagger mb-5 text-5xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl md:text-7xl"
+              style={DISPLAY}
             >
-              {UI_TEXT.primaryCta}
-              <ArrowUpRight
-                size={16}
-                className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              <span className="block text-foreground">Hi, I&apos;m</span>
+              <ScrambleText
+                text="Piyush Yadav"
+                start={heroReady}
+                className="block bg-gradient-to-r from-primary via-[#ffd089] to-primary bg-clip-text text-transparent"
               />
-            </button>
-            <a
-              href={RESUME_URL}
-              className="group flex items-center gap-2 border border-border px-7 py-3.5 text-sm font-mono tracking-wide text-muted-foreground hover:border-foreground hover:text-foreground transition-all duration-200"
-              style={MONO}
-            >
-              <Download size={14} />
-              {UI_TEXT.secondaryCta}
-            </a>
-            <div className="flex items-center gap-4 ml-2">
-              <a
-                href={PROFILE.social.github}
-                target="_blank"
-                rel="noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <FaGithub size={18} />
-              </a>
-              <a
-                href={PROFILE.social.linkedin}
-                target="_blank"
-                rel="noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <FaLinkedin size={18} />
-              </a>
-              <a
-                href={PROFILE.social.leetcode}
-                target="_blank"
-                rel="noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <SiLeetcode size={18} />
-              </a>
-              <a
-                href={PROFILE.social.codeforces}
-                target="_blank"
-                rel="noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <SiCodeforces size={18} />
-              </a>
-              <a
-                href={emailHref}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Mail size={18} />
-              </a>
-            </div>
-          </div>
-        </div>
+            </h1>
 
-        <div className="absolute bottom-8 right-6 md:right-16 flex flex-col items-center gap-2 opacity-40">
-          <span
-            className="font-mono text-[9px] tracking-[0.3em] rotate-90 text-muted-foreground"
-            style={MONO}
-          >
-            {UI_TEXT.scrollHint}
-          </span>
-          <div className="h-12 w-px bg-muted-foreground/40" />
-        </div>
-      </section>
-
-      {/* STATS BAR */}
-      <section className="border-y border-border py-12 px-6 md:px-16 lg:px-24">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-          {STATS.map((s) => (
-            <div key={s.label} className="reveal-up">
-              <p
-                className="text-4xl font-black leading-none text-primary mb-1"
-                style={DISPLAY}
-              >
-                <CountUp
-                  value={s.value}
-                  suffix={s.suffix}
-                  decimals={s.decimals}
-                />
-              </p>
-              <p
-                className="font-mono text-[10px] tracking-widest text-muted-foreground"
-                style={MONO}
-              >
-                {s.label.toUpperCase()}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ABOUT */}
-      <section
-        id="about"
-        className="py-24 px-6 md:px-16 lg:px-24 border-t border-border"
-      >
-        <div className="grid max-w-6xl gap-16 md:grid-cols-[minmax(0,1fr)_minmax(320px,460px)] md:items-start">
-          <div>
-            <p
-              className="mb-3 font-mono text-xs tracking-[0.3em] text-primary reveal-up"
-              style={MONO}
-            >
-              {ABOUT.eyebrow}
+            <p className="hero-stagger mb-8 max-w-xl text-lg leading-relaxed text-muted-foreground">
+              Final-year CS student building full-stack web apps and developer
+              tools. I care about clean systems, fast interfaces, and shipping
+              software that people actually use.
             </p>
-            <h2
-              className="text-4xl md:text-5xl font-black leading-tight mb-8 reveal-up"
-              style={DISPLAY}
-            >
-              {ABOUT.title}
-            </h2>
-            <div className="space-y-4 text-muted-foreground leading-relaxed reveal-up">
-              {ABOUT.paragraphs.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
+
+            <div className="hero-stagger mb-8 flex flex-wrap items-center gap-3">
+              <button
+                ref={primaryBtn}
+                onClick={() => scrollTo("work")}
+                className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-[0_0_0_0_rgba(246,182,76,0.4)] transition-shadow hover:shadow-[0_10px_40px_-8px_rgba(246,182,76,0.5)]"
+              >
+                View my work <ArrowUpRight size={16} />
+              </button>
+              <a
+                href={RESUME_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 rounded-lg border border-border px-5 py-3 text-sm text-foreground transition-colors hover:border-primary/50 hover:text-primary"
+              >
+                <Download size={15} /> Download CV
+              </a>
+            </div>
+
+            <div className="hero-stagger flex flex-wrap items-center gap-2.5">
+              {socials}
             </div>
           </div>
 
-          <div className="relative h-[420px] max-h-[90vh] w-full overflow-hidden bg-card reveal-up md:h-[520px]">
-            <img
-              src={PROFILE.image.src}
-              alt={PROFILE.image.alt}
-              className="absolute inset-0 h-full w-full object-cover object-center opacity-60"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-            <div className="absolute bottom-6 left-6 right-6 flex flex-col gap-1">
-              <p
-                className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground"
-                style={MONO}
-              >
-                {PROFILE.image.meta[0]}
-              </p>
-              <p
-                className="font-mono text-[10px] tracking-[0.25em] text-primary"
-                style={MONO}
-              >
-                {PROFILE.image.meta[1]}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* PROJECTS */}
-      <section id="projects" className="py-24 px-6 md:px-16 lg:px-24">
-        <div className="mb-14 flex items-end justify-between reveal-up">
-          <div>
-            <p
-              className="mb-2 font-mono text-xs tracking-[0.3em] text-primary"
-              style={MONO}
-            >
-              {SECTION_HEADINGS.projects.eyebrow}
-            </p>
-            <h2
-              className="text-4xl md:text-5xl font-black leading-tight"
-              style={DISPLAY}
-            >
-              {SECTION_HEADINGS.projects.title}
-            </h2>
-          </div>
-          <a
-            href={PROFILE.social.github}
-            target="_blank"
-            rel="noreferrer"
-            className="hidden md:flex items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground hover:text-foreground transition-colors"
-            style={MONO}
-          >
-            {SECTION_HEADINGS.projects.githubLabel} <ArrowUpRight size={13} />
-          </a>
-        </div>
-
-        <div className="md:hidden">
-          <Carousel opts={{ align: "start" }}>
-            <CarouselContent className="-ml-4">
-              {PROJECTS.map((p) => (
-                <CarouselItem key={p.index} className="basis-[88%] pl-4">
-                  <article
-                    className="project-row group border border-border bg-card p-4"
-                    data-cursor
-                  >
-                    {p.cover && <ProjectCover project={p} />}
-                    <ProjectDetails p={p} />
-                    <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
-                      <span
-                        className="font-mono text-xs text-muted-foreground"
-                        style={MONO}
-                      >
-                        {p.index} / {PROJECTS.length}
-                      </span>
-                      <a
-                        href={p.github}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-muted-foreground hover:text-foreground transition-colors"
-                        title={UI_TEXT.projectGithubTitle}
-                      >
-                        <Github size={15} />
-                      </a>
-                    </div>
-                  </article>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <div className="mt-5 flex justify-end gap-2">
-              <CarouselPrevious className="static translate-y-0" />
-              <CarouselNext className="static translate-y-0" />
-            </div>
-          </Carousel>
-        </div>
-
-        <div className="hidden divide-y divide-border md:block">
-          {PROJECTS.map((p) => (
-            <div
-              key={p.index}
-              className="project-row group grid grid-cols-1 md:grid-cols-[72px_1fr_auto] gap-4 md:gap-8 py-8 cursor-pointer"
-              data-cursor
-            >
-              <span
-                className="font-mono text-xs text-muted-foreground self-start pt-1"
-                style={MONO}
-              >
-                {p.index}
-              </span>
-              <div>
-                {p.cover && <ProjectCover project={p} />}
-                <ProjectDetails p={p} />
-              </div>
-              <div className="flex items-start gap-3 pt-1">
-                <a
-                  href={p.github}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  title={UI_TEXT.projectGithubTitle}
-                >
-                  <Github size={15} />
-                </a>
-                {p.live && (
-                  <a
-                    href={p.live}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-muted-foreground group-hover:text-primary transition-colors duration-200"
-                    title={UI_TEXT.projectLiveTitle}
-                  >
-                    <ExternalLink size={15} />
-                  </a>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* EXPERIENCE */}
-      <section
-        id="experience"
-        className="py-24 px-6 md:px-16 lg:px-24 border-t border-border"
-      >
-        <p
-          className="mb-3 font-mono text-xs tracking-[0.3em] text-primary reveal-up"
-          style={MONO}
-        >
-          {SECTION_HEADINGS.experience.eyebrow}
-        </p>
-        <h2
-          className="text-4xl md:text-5xl font-black leading-tight mb-14 reveal-up"
-          style={DISPLAY}
-        >
-          {SECTION_HEADINGS.experience.title}
-        </h2>
-
-        <div className="space-y-0 divide-y divide-border">
-          {EXPERIENCE.map((e, i) => (
-            <div
-              key={i}
-              className="exp-row grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6 py-10"
-            >
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <Briefcase size={13} className="text-primary flex-shrink-0" />
-                  <span
-                    className="font-mono text-[10px] tracking-widest text-primary uppercase"
-                    style={MONO}
-                  >
-                    {e.type}
-                  </span>
-                </div>
-                <p className="text-base font-medium text-foreground leading-snug">
-                  {e.company}
-                </p>
-                <p
-                  className="font-mono text-xs text-muted-foreground"
+          {/* code panel */}
+          <div className="hero-stagger">
+            <div className="relative rounded-2xl border border-border bg-card/80 shadow-2xl backdrop-blur-sm">
+              <div className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-b from-primary/20 to-transparent opacity-50" />
+              <div className="relative flex items-center gap-1.5 border-b border-border px-4 py-3">
+                <span className="h-3 w-3 rounded-full bg-[#e5533b]/80" />
+                <span className="h-3 w-3 rounded-full bg-[#f6b64c]/80" />
+                <span className="h-3 w-3 rounded-full bg-emerald-500/70" />
+                <span
+                  className="ml-3 text-[11px] text-muted-foreground"
                   style={MONO}
                 >
-                  {e.period}
-                </p>
+                  ~/dev/profile.ts
+                </span>
               </div>
-              <div>
-                <h3
-                  className="text-lg font-black mb-4 text-foreground"
-                  style={DISPLAY}
+              <div className="relative p-6">
+                {terminalLines.map((line, i) => (
+                  <div
+                    key={i}
+                    className="flex gap-4 text-[13px] leading-7"
+                    style={MONO}
+                  >
+                    <span className="select-none text-muted-foreground/40">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span
+                      className={
+                        line.startsWith("  ")
+                          ? "text-muted-foreground"
+                          : "text-foreground"
+                      }
+                    >
+                      {displayed[i] ?? ""}
+                      {i === displayed.length - 1 && !done && (
+                        <span className="ml-0.5 inline-block h-[1.05em] w-[7px] translate-y-0.5 animate-pulse bg-primary align-middle" />
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {/* competitive badges */}
+              <div className="relative grid grid-cols-2 gap-px border-t border-border bg-border">
+                <a
+                  href="https://leetcode.com/PiyushYadv"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group flex items-center gap-3 bg-card px-4 py-3.5 transition-colors hover:bg-secondary"
                 >
-                  {e.role}
-                </h3>
-                <ul className="space-y-2.5">
+                  <LeetCodeMark size={18} />
+                  <div className="min-w-0">
+                    <p
+                      className="text-[11px] text-muted-foreground"
+                      style={MONO}
+                    >
+                      LeetCode
+                    </p>
+                    <p className="truncate text-sm font-semibold text-foreground group-hover:text-primary">
+                      1000+ solved
+                    </p>
+                  </div>
+                </a>
+                <a
+                  href="https://codeforces.com/profile/piyush.y276"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group flex items-center gap-3 bg-card px-4 py-3.5 transition-colors hover:bg-secondary"
+                >
+                  <CodeforcesMark size={18} />
+                  <div className="min-w-0">
+                    <p
+                      className="text-[11px] text-muted-foreground"
+                      style={MONO}
+                    >
+                      Codeforces
+                    </p>
+                    <p className="truncate text-sm font-semibold text-foreground group-hover:text-primary">
+                      Specialist · 1459
+                    </p>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 text-[11px] tracking-widest text-muted-foreground"
+          style={MONO}
+        >
+          SCROLL ↓
+        </div>
+      </section>
+
+      {/* ── WORK / PROJECTS ── */}
+      <section id="work" className="border-t border-border py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="reveal-up mb-12 flex items-end justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <span className="text-xs text-primary" style={MONO}>
+                01
+              </span>
+              <span className="h-px w-10 bg-gradient-to-r from-primary/60 to-transparent" />
+              <h2 className="text-3xl font-bold tracking-tight" style={DISPLAY}>
+                Selected Work
+              </h2>
+            </div>
+            <a
+              href="https://github.com/PiyushYadv"
+              target="_blank"
+              rel="noreferrer"
+              className="hidden items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary sm:flex"
+            >
+              All on GitHub <ArrowUpRight size={14} />
+            </a>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            {PROJECTS.map((p) => (
+              <ProjectCard key={p.title} p={p} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ACHIEVEMENTS ── */}
+      <section id="achievements" className="border-t border-border py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <SectionLabel n="02" label="Achievements" />
+          <Achievements />
+          <div className="reveal-up mt-5 flex flex-wrap gap-3">
+            {[
+              "🏅 Flipkart GRiD 8.0 — Semi-Finalist",
+              "⭐ 3-Star coder on CodeChef",
+              "💻 1500+ Problems Solved — LeetCode & Codeforces",
+              // "🥇 Class Rank 1 — Class X",
+            ].map((b) => (
+              <span
+                key={b}
+                className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground"
+              >
+                {b}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ABOUT ── */}
+      <section id="about" className="border-t border-border py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <SectionLabel n="03" label="About" />
+          <div className="grid gap-12 md:grid-cols-[320px_1fr]">
+            <AboutPhoto />
+            <div className="reveal-up flex flex-col justify-center space-y-4 text-[15px] leading-relaxed text-muted-foreground">
+              <p>
+                I&apos;m a final-year Computer Science student who loves
+                building resilient systems and clean, user-focused applications.
+              </p>
+              <p>
+                Between shipping features in my internship, optimizing APIs for
+                full-stack personal projects, and contributing to my college
+                club, I&apos;ve spent the last two years learning how to build
+                software that scales. I pick up new concepts fast, ask the hard
+                questions, and care about writing code that lasts.
+              </p>
+              <p>
+                When I&apos;m not building projects, you&apos;ll usually find me
+                gaming, grinding through tough competitive programming problems,
+                or going down a rabbit hole to learn a new skill.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── EXPERIENCE ── */}
+      <section id="experience" className="border-t border-border py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <SectionLabel n="04" label="Experience" />
+          <div className="relative space-y-5 md:pl-8">
+            <span className="absolute left-[5px] top-2 hidden h-[calc(100%-1rem)] w-px bg-gradient-to-b from-primary/50 via-border to-transparent md:block" />
+            {EXPERIENCE.map((e, i) => (
+              <div
+                key={i}
+                className="reveal-card relative rounded-2xl border border-border bg-card p-6 transition-colors hover:border-primary/35"
+              >
+                <span className="absolute -left-8 top-8 hidden h-3 w-3 rounded-full border-2 border-primary bg-background md:block" />
+                <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h3
+                      className="font-semibold text-foreground"
+                      style={DISPLAY}
+                    >
+                      {e.role}
+                    </h3>
+                    <p className="text-sm text-primary">{e.company}</p>
+                  </div>
+                  <div className="flex flex-col gap-1 sm:items-end">
+                    <span
+                      className="rounded-full border border-border px-2.5 py-0.5 text-[11px] text-muted-foreground"
+                      style={MONO}
+                    >
+                      {e.type}
+                    </span>
+                    <span
+                      className="flex items-center gap-1 text-[11px] text-muted-foreground"
+                      style={MONO}
+                    >
+                      <Calendar size={11} /> {e.period}
+                    </span>
+                  </div>
+                </div>
+                <ul className="space-y-2">
                   {e.points.map((pt, j) => (
                     <li
                       key={j}
-                      className="flex gap-3 text-sm text-muted-foreground leading-relaxed"
+                      className="flex gap-2 text-sm leading-relaxed text-muted-foreground"
                     >
-                      <span className="mt-2 h-px w-4 bg-primary/50 flex-shrink-0" />
+                      <ChevronRight
+                        size={14}
+                        className="mt-0.5 flex-shrink-0 text-primary"
+                      />{" "}
                       {pt}
                     </li>
                   ))}
                 </ul>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* EDUCATION */}
-      <section
-        id="education"
-        className="py-24 px-6 md:px-16 lg:px-24 border-t border-border"
-      >
-        <p
-          className="mb-3 font-mono text-xs tracking-[0.3em] text-primary reveal-up"
-          style={MONO}
-        >
-          {SECTION_HEADINGS.education.eyebrow}
-        </p>
-        <h2
-          className="text-4xl md:text-5xl font-black leading-tight mb-14 reveal-up"
-          style={DISPLAY}
-        >
-          {SECTION_HEADINGS.education.title}
-        </h2>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          {EDUCATION.map((ed, i) => (
-            <div
-              key={i}
-              className="edu-card border border-border p-8 bg-card hover:border-primary/30 transition-colors duration-300"
-            >
-              <div className="flex items-start justify-between gap-4 mb-5">
-                <GraduationCap
-                  size={20}
-                  className="text-primary flex-shrink-0 mt-0.5"
-                />
-                <span
-                  className="font-mono text-[10px] tracking-widest text-muted-foreground ml-auto"
-                  style={MONO}
-                >
-                  {ed.period}
-                </span>
-              </div>
-              <h3
-                className="text-lg font-black leading-snug mb-1 text-foreground"
-                style={DISPLAY}
-              >
-                {ed.degree}
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {ed.institution}
-              </p>
-              <div className="flex items-center gap-2 mb-5">
-                <Award size={12} className="text-primary" />
-                <span className="font-mono text-xs text-primary" style={MONO}>
-                  {ed.gpa}
-                </span>
-              </div>
-              {ed.highlights.length > 0 && (
-                <ul className="space-y-1.5">
-                  {ed.highlights.map((h, j) => (
-                    <li
-                      key={j}
-                      className="flex items-center gap-2 text-xs text-muted-foreground"
-                    >
-                      <span className="h-px w-3 bg-primary/40 flex-shrink-0" />
-                      {h}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/*
-      Future section: uncomment ACHIEVEMENTS in the import above, the data in
-      portfolio.ts, and the nav item when you have 3-5 strong achievements.
-
-      <section
-        id="achievements"
-        className="py-24 px-6 md:px-16 lg:px-24 border-t border-border"
-      >
-        <p
-          className="mb-3 font-mono text-xs tracking-[0.3em] text-primary reveal-up"
-          style={MONO}
-        >
-          {SECTION_HEADINGS.achievements.eyebrow}
-        </p>
-        <h2
-          className="text-4xl md:text-5xl font-black leading-tight mb-14 reveal-up"
-          style={DISPLAY}
-        >
-          {SECTION_HEADINGS.achievements.title}
-        </h2>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {ACHIEVEMENTS.map((achievement) => (
-            <div
-              key={`${achievement.title}-${achievement.year}`}
-              className="reveal-up border border-border p-7 bg-card hover:border-primary/30 transition-colors duration-300"
-            >
-              <div className="mb-5 flex items-center justify-between gap-4">
-                <Award size={18} className="text-primary flex-shrink-0" />
-                <span
-                  className="font-mono text-[10px] tracking-widest text-muted-foreground"
-                  style={MONO}
-                >
-                  {achievement.year}
-                </span>
-              </div>
-              <h3
-                className="text-lg font-black leading-snug mb-2 text-foreground"
-                style={DISPLAY}
-              >
-                {achievement.title}
-              </h3>
-              <p className="text-sm text-primary mb-4">
-                {achievement.organization}
-              </p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {achievement.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-      */}
-
-      {/* SKILLS */}
-      <section
-        id="skills"
-        className="py-24 px-6 md:px-16 lg:px-24 border-t border-border"
-      >
-        <p
-          className="mb-3 font-mono text-xs tracking-[0.3em] text-primary reveal-up"
-          style={MONO}
-        >
-          {SECTION_HEADINGS.skills.eyebrow}
-        </p>
-        <h2
-          className="text-4xl md:text-5xl font-black leading-tight mb-14 reveal-up"
-          style={DISPLAY}
-        >
-          {SECTION_HEADINGS.skills.title}
-        </h2>
-
-        <div
-          ref={skillsRef}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-          style={{
-            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-          }}
-        >
-          {SKILLS.map((group) => (
-            <div key={group.category} className="skill-cell space-y-4">
-              <p
-                className="font-mono text-[10px] tracking-[0.25em] text-primary border-b border-primary/20 pb-3"
-                style={MONO}
-              >
-                {group.category.toUpperCase()}
-              </p>
-              <ul className="space-y-2">
-                {group.items.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <span className="h-px w-3 bg-primary/50 flex-shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CONTACT */}
-      <section
-        id="contact"
-        className="py-32 px-6 md:px-16 lg:px-24 border-t border-border"
-      >
-        <div className="max-w-4xl">
-          <p
-            className="mb-3 font-mono text-xs tracking-[0.3em] text-primary reveal-up"
-            style={MONO}
-          >
-            {CONTACT.eyebrow}
-          </p>
-          <h2
-            className="font-black leading-none tracking-tight text-foreground mb-8 reveal-up"
-            style={{ ...DISPLAY, fontSize: "clamp(2.5rem, 7vw, 6rem)" }}
-          >
-            {CONTACT.title}
-          </h2>
-          <p className="text-muted-foreground max-w-xl leading-relaxed mb-12 reveal-up">
-            {CONTACT.description}
-          </p>
-          <div className="flex flex-wrap gap-4 reveal-up">
-            <a
-              href={emailHref}
-              className="group flex items-center gap-3 border border-primary px-8 py-4 text-sm font-mono tracking-widest text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
-              style={MONO}
-            >
-              {PROFILE.social.email}
-              <ArrowUpRight
-                size={14}
-                className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-              />
-            </a>
-            <a
-              href={RESUME_URL}
-              className="flex items-center gap-3 border border-border px-8 py-4 text-sm font-mono tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-all duration-200"
-              style={MONO}
-            >
-              <Download size={14} />
-              {UI_TEXT.contactResume}
-            </a>
-            <a
-              href={PROFILE.social.linkedin}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-3 border border-border px-8 py-4 text-sm font-mono tracking-widest text-muted-foreground hover:border-foreground hover:text-foreground transition-all duration-200"
-              style={MONO}
-            >
-              <Linkedin size={14} />
-              {UI_TEXT.linkedinLabel}
-            </a>
-            <a
-              href={PROFILE.social.github}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-3 border border-border px-8 py-4 text-sm font-mono tracking-widest text-muted-foreground hover:border-foreground hover:text-foreground transition-all duration-200"
-              style={MONO}
-            >
-              <Github size={14} />
-              {UI_TEXT.githubLabel}
-            </a>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="border-t border-border py-8 px-6 md:px-16 lg:px-24 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <span
-          className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground"
+      {/* ── EDUCATION ── */}
+      <section id="education" className="border-t border-border py-[95px]">
+        <div className="mx-auto max-w-6xl px-6">
+          <SectionLabel n="05" label="Education" />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {EDUCATION.map((ed, i) => (
+              <div
+                key={i}
+                className="reveal-card flex flex-col rounded-2xl border border-border bg-card p-6 transition-colors hover:border-primary/35"
+              >
+                <p
+                  className="mb-1 font-semibold leading-snug text-foreground"
+                  style={DISPLAY}
+                >
+                  {ed.degree}
+                </p>
+                <p className="mb-3 text-sm text-primary">{ed.institution}</p>
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <span
+                    className="flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-[11px] text-muted-foreground"
+                    style={MONO}
+                  >
+                    <Calendar size={10} /> {ed.period}
+                  </span>
+                  <span
+                    className="rounded-full bg-primary/12 px-2.5 py-0.5 text-[11px] font-medium text-primary"
+                    style={MONO}
+                  >
+                    {ed.score}
+                  </span>
+                </div>
+                <ul className="space-y-1.5">
+                  {ed.details.map((d, j) => (
+                    <li
+                      key={j}
+                      className="flex items-start gap-2 text-sm text-muted-foreground"
+                    >
+                      <ChevronRight
+                        size={13}
+                        className="mt-0.5 flex-shrink-0 text-primary"
+                      />{" "}
+                      {d}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── SKILLS ── */}
+      <section id="skills" className="border-t border-border py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <SectionLabel n="06" label="Skills" />
+          <div className="space-y-6">
+            {SKILLS.map((group) => (
+              <div
+                key={group.category}
+                className="reveal-left flex flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:items-start sm:gap-8"
+              >
+                <p
+                  className="w-40 flex-shrink-0 text-[11px] uppercase tracking-widest text-muted-foreground"
+                  style={MONO}
+                >
+                  {group.category}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {group.items.map((item) => (
+                    <span
+                      key={item}
+                      className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-foreground transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:text-primary"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p
+            className="reveal-up mt-8 text-xs text-muted-foreground"
+            style={MONO}
+          >
+            {"// currently exploring: system design + distributed systems"}
+          </p>
+        </div>
+      </section>
+
+      {/* ── CONTACT ── */}
+      <section id="contact" className="border-t border-border py-28">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="reveal-up relative overflow-hidden rounded-3xl border border-border bg-card p-10 text-center md:p-16">
+            <div className="pointer-events-none absolute left-1/2 top-0 h-64 w-96 -translate-x-1/2 rounded-full bg-primary/10 blur-[90px]" />
+            <span className="relative text-xs text-primary" style={MONO}>
+              07 — Contact
+            </span>
+            <h2
+              className="relative mx-auto mt-4 max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl"
+              style={DISPLAY}
+            >
+              Let&apos;s build something worth shipping.
+            </h2>
+            <p className="relative mx-auto mt-5 max-w-lg text-muted-foreground">
+              I&apos;m actively looking for software engineering roles and
+              internships. Recruiter, founder, or fellow engineer — my inbox is
+              always open.
+            </p>
+            <div className="relative mt-8 flex flex-wrap items-center justify-center gap-3">
+              <a
+                href="mailto:iampiyushyadv@gmail.com"
+                className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5"
+              >
+                <Mail size={15} /> iampiyushyadv@gmail.com
+              </a>
+              <a
+                href={RESUME_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 rounded-lg border border-border px-5 py-3 text-sm text-foreground transition-colors hover:border-primary/50 hover:text-primary"
+              >
+                <Download size={14} /> Resume
+              </a>
+            </div>
+            <div className="relative mt-7 flex items-center justify-center gap-2.5">
+              {socials}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="border-t border-border py-7">
+        <div
+          className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 text-xs text-muted-foreground sm:flex-row"
           style={MONO}
         >
-          © {new Date().getFullYear()} {PROFILE.name.toUpperCase()} —{" "}
-          {FOOTER.suffix}
-        </span>
-        <span
-          className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground"
-          style={MONO}
-        >
-          {FOOTER.credit}
-        </span>
+          <span>© 2027 Piyush Yadav · brewed with ☕</span>
+          <span>React · GSAP · Tailwind</span>
+        </div>
       </footer>
     </div>
   );
