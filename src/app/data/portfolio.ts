@@ -38,7 +38,7 @@ export const PROJECTS = [
     description:
       "AI-powered log intelligence platform that parses server logs with Drain3, detects anomalous event sequences using a PyTorch LSTM, and delivers near-real-time anomaly visualization and Gemini-powered diagnostics through a Next.js dashboard.",
     tags: ["Python", "PyTorch", "FastAPI", "Next.js", "Gemini"],
-    github: "https://github.com/piyushyadv/sentinel-log",
+    github: "https://github.com/piyushyadv/sentinel.log",
     live: null,
     year: "2026",
     gradient: "from-[#c99ef5]/25 via-[#8a6bd0]/10 to-transparent",
